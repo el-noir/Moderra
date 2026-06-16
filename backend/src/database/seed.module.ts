@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
-import { AdminModule } from './admin/admin.module';
-import { AppController } from './app.controller';
-import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from './config/config.module';
-import { RolesGuard } from './common/guards/roles.guard';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '../config/config.module';
+import { PolicyModule } from '../policy/policy.module';
+import { UsersModule } from '../users/users.module';
+import { SeedService } from './seed.service';
 
 @Module({
   imports: [
@@ -23,10 +22,9 @@ import { RolesGuard } from './common/guards/roles.guard';
         return { uri: mongoUri };
       },
     }),
-    AuthModule,
-    AdminModule,
+    UsersModule,
+    PolicyModule,
   ],
-  controllers: [AppController],
-  providers: [RolesGuard],
+  providers: [SeedService],
 })
-export class AppModule {}
+export class SeedModule {}

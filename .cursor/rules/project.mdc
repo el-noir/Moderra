@@ -1,3 +1,27 @@
 ---
-alwaysApply: true
+description: Core conventions for the AI Content Moderation Platform
+globs: ["**/*.ts", "**/*.tsx"]
 ---
+
+# Stack
+- Backend: NestJS + TypeScript, Mongoose. Frontend: Next.js App Router + TypeScript, TanStack Query.
+- Follow the schemas and endpoint contracts in PROJECT_PLAN.md exactly. Do not invent additional fields
+  or rename collections without flagging it first.
+
+# Before importing anything
+- Never assume a package is installed based on training data. Run `npm list <package>` in the relevant
+  workspace first. If it's not there, install it explicitly and say so.
+
+# Interface-first
+- When adding a new feature, write the TypeScript interfaces/DTOs and the Mongoose schema first, in
+  isolation, before touching any service or controller logic. Show me that before continuing.
+
+# Boundaries
+- Never modify .env, docker-compose.yml, or package.json without calling it out explicitly first.
+- Never commit or push. I review and commit myself.
+- If you're not sure whether something matches PROJECT_PLAN.md section 3 (Non-Negotiable Design
+  Decisions), stop and ask rather than guessing.
+
+# Style
+- Be concise. Don't explain standard NestJS/Next.js patterns I already know. Focus only on what's
+  actually new or non-obvious in a given change.
