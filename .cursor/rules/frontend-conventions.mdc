@@ -1,0 +1,35 @@
+---
+description: Next.js / React frontend conventions for a professional, accurate, accessible UI
+globs: ["frontend/**/*.tsx", "frontend/**/*.ts"]
+---
+
+# Data fetching
+- TanStack Query for all server state. No manual `useState` + `useEffect` fetch chains.
+- Every view that fetches data explicitly handles three states: loading, error, and empty. A blank
+  screen, an uncaught promise rejection, or a silently-empty list with no explanation is not acceptable.
+- After a mutation that changes server state (file an appeal, resolve an appeal, override a verdict,
+  change policy), invalidate the relevant query so the UI reflects the new state without a manual
+  refresh — this is the actual implementation of PROJECT_PLAN.md's "reflects real system state" goal.
+
+# Components
+- Server components by default. Add `'use client'` only where interactivity or hooks are actually
+  needed — don't default every component to client-side.
+- Role-based access (`(user)` vs `(admin)` route groups) is enforced in middleware with a redirect, not
+  by rendering a page and conditionally hiding parts of it client-side.
+
+# Forms
+- Validate with a schema (zod) that mirrors the backend DTO shape, so a user sees a validation error
+  before the request round-trips to the API.
+- Disable the submit control during a pending mutation. Show a clear success or failure state after —
+  don't leave the user wondering whether a click did anything.
+
+# Accessibility, not as an afterthought
+- Every form input has an associated label.
+- Every submitted image has meaningful alt text.
+- Outcome status (Approved/Flagged/Blocked) is never communicated by color alone — pair it with text
+  or an icon so it's legible without color perception.
+
+# Types
+- Import the shared outcome/category/enforcement constants from the same source the backend uses
+  (or a generated/shared types package) rather than re-declaring matching string literals on the
+  frontend. Two independently-typed copies of the same enum are how they drift apart.

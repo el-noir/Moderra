@@ -1,0 +1,35 @@
+---
+description: NestJS backend architecture and code organization conventions
+globs: ["backend/src/**/*.ts"]
+---
+
+# Module structure
+- One module per domain: auth, users, submissions, appeals, policy, verdicts, analytics, moderation.
+  Each gets its own controller, service, DTOs, and (where relevant) schema file. Don't merge unrelated
+  domains into one module for convenience.
+- Controllers validate input and delegate — no business logic in a controller. Logic lives in services.
+- Constructor-based dependency injection only. No service-locator patterns, no manual instantiation.
+
+# Validation and serialization
+- Every request body has a class-validator DTO. Global `ValidationPipe` runs with
+  `whitelist: true, forbidNonWhitelisted: true` — unexpected fields should be rejected, not silently
+  dropped or accepted.
+- `User.passwordHash` must never appear in any response. Use class-transformer `@Exclude()` on the
+  schema/DTO, not a manual `delete` call that's easy to forget on one route.
+- Use a global exception filter that maps known error types to correct HTTP status codes (400, 401,
+  403, 404, 409). Don't let raw Mongoose/JS errors leak to the client as unstructured 500s.
+
+# Shared constants, not magic strings
+- The six moderation category names, the three outcome values (`approved`/`flagged`/`blocked`), and the
+  two enforcement values (`auto_block`/`flag_for_review`) are each defined exactly once as a TypeScript
+  const object or enum in a shared constants file, and imported everywhere — schema definitions, DTOs,
+  the moderation prompt builder, and the frontend types. A typo in a category name in one of these
+  places silently breaks policy matching; defining it once removes that failure mode entirely.
+
+# Config
+- All environment variables go through a typed `ConfigService`/config module. No `process.env.X`
+  scattered through business logic — it should be impossible to forget an env var until runtime.
+
+# Async correctness
+- When processing multiple images in one submission, use `Promise.allSettled`, never `Promise.all` —
+  one image's moderation-engine failure must not fail the whole batch (see PROJECT_PLAN.md 3.6).
