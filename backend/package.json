@@ -6,7 +6,8 @@
     "build": "nest build",
     "start": "node dist/main",
     "start:dev": "nest start --watch",
-    "seed": "ts-node --transpile-only src/database/seed.ts"
+    "seed": "ts-node --transpile-only src/database/seed.ts",
+    "moderation:test": "ts-node --transpile-only src/moderation/test-moderation.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
@@ -26,7 +27,8 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",

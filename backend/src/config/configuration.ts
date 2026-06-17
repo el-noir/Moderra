@@ -20,4 +20,6 @@ export default () => ({
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
   seedAdminEmail: process.env.SEED_ADMIN_EMAIL ?? 'admin@example.com',
   seedAdminPassword: process.env.SEED_ADMIN_PASSWORD ?? 'AdminPass1',
+  groqApiKey: process.env.GROQ_API_KEY,
+  groqVisionModel: process.env.GROQ_VISION_MODEL,
 });
