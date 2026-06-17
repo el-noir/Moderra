@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { PolicyCategory, PolicyCategorySchema } from './policy-category.schema';
 import { User } from '../../users/schemas/user.schema';
+import { applyPolicyVersionImmutabilityGuards } from './policy-version.immutability';
 
 export type PolicyVersionDocument = HydratedDocument<PolicyVersion>;
 
@@ -18,8 +19,11 @@ export class PolicyVersion {
 
   @Prop({ type: [PolicyCategorySchema], required: true })
   categories: PolicyCategory[];
+
+  createdAt: Date;
 }
 
 export const PolicyVersionSchema = SchemaFactory.createForClass(PolicyVersion);
 
 PolicyVersionSchema.index({ isActive: 1 });
+applyPolicyVersionImmutabilityGuards(PolicyVersionSchema);

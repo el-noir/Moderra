@@ -76,7 +76,7 @@ export class SeedService {
       enforcement: ENFORCEMENT_MODES.FLAG_FOR_REVIEW,
     }));
 
-    const policy = await this.policyService.create({
+    const policy = await this.policyService.createInitialVersion({
       version: DEFAULT_POLICY_VERSION,
       isActive: true,
       createdBy: adminId,
