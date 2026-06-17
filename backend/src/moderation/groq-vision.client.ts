@@ -72,9 +72,11 @@ export class GroqVisionClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      this.logger.error(`Groq API request failed (${response.status})`);
+      this.logger.error(
+        `Groq API request failed (${response.status}): ${errorBody}`,
+      );
       throw new InternalServerErrorException(
-        `Moderation service unavailable (Groq ${response.status})`,
+        `Moderation service unavailable (Groq ${response.status}). Check GROQ_VISION_MODEL — a 404 usually means the model ID is invalid. Response: ${errorBody}`,
       );
     }
 
