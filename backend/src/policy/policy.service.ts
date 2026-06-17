@@ -88,6 +88,16 @@ export class PolicyService {
     }
   }
 
+  async getActivePolicy(): Promise<PolicyVersionDocument> {
+    const policy = await this.findActivePolicy();
+
+    if (!policy) {
+      throw new NotFoundException('No active policy version found');
+    }
+
+    return policy;
+  }
+
   findByVersion(version: number): Promise<PolicyVersionDocument | null> {
     return this.policyVersionModel.findOne({ version }).exec();
   }

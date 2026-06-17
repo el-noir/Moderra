@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from './config/config.module';
 import { PolicyModule } from './policy/policy.module';
+import { SubmissionsModule } from './submissions/submissions.module';
 import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
@@ -26,6 +27,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     }),
     AuthModule,
     PolicyModule,
+    SubmissionsModule,
     AdminModule,
   ],
   controllers: [AppController],

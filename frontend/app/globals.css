@@ -10,5 +10,49 @@ body {
 }
 
 main {
-  max-width: 40rem;
+  max-width: 48rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 2rem;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+nav {
+  margin-bottom: 1.5rem;
+}
+
+form div {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+input[type='email'],
+input[type='password'],
+input[type='file'] {
+  display: block;
+  width: min(100%, 24rem);
+}
+
+button {
+  cursor: pointer;
+}
+
+article {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
 }

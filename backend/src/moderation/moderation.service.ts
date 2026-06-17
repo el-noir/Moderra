@@ -7,6 +7,7 @@ import {
 import { ModerationCategoryName } from '../common/constants/moderation.constants';
 import { GroqVisionClient } from './groq-vision.client';
 import { buildModerationPrompt } from './moderation.prompt';
+import { CLASSIFICATIONS } from './moderation.constants';
 import {
   CategoryModerationResult,
   moderationResponseSchema,
@@ -62,8 +63,27 @@ export class ModerationService {
       uniqueCategories,
       validated.data.results,
     );
+    this.assertConsistentClassificationScores(validated.data.results);
 
     return validated.data.results;
+  }
+
+  private assertConsistentClassificationScores(
+    results: CategoryModerationResult[],
+  ): void {
+    for (const result of results) {
+      if (
+        result.classification === CLASSIFICATIONS.NOT_DETECTED &&
+        result.confidenceScore >= 50
+      ) {
+        this.logger.error(
+          `Inconsistent moderation result for ${result.category}: not_detected with confidence ${result.confidenceScore}`,
+        );
+        throw new InternalServerErrorException(
+          'Moderation service returned inconsistent category result',
+        );
+      }
+    }
   }
 
   private assertCompleteEnabledCategoryCoverage(
