@@ -238,9 +238,11 @@ export default function AdminVerdictsPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground px-1 py-0 cursor-default">
-                                  OVERRIDDEN
-                                </Badge>
+                                <div tabIndex={0} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm cursor-help">
+                                  <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground px-1 py-0 cursor-inherit">
+                                    OVERRIDDEN
+                                  </Badge>
+                                </div>
                               </TooltipTrigger>
                               <TooltipContent>
                                 <div className="font-mono text-xs space-y-1">

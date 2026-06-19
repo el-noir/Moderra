@@ -13,7 +13,9 @@ export function TopBar({ title, titleSuffix, action }: TopBarProps) {
         <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
         {titleSuffix}
       </div>
-      {action && <div>{action}</div>}
+      <div id="top-bar-action-slot" className="flex items-center gap-3">
+        {action}
+      </div>
     </div>
   );
 }

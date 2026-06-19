@@ -1,171 +1,259 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/api';
-import { getAccessToken } from '@/lib/auth-token';
-import type { PolicyVersion, PolicyCategory } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
+import { ChevronDown, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
-type PolicyResponse = { activeVersion: PolicyVersion; history: PolicyVersion[] };
+import { apiRequest } from '@/lib/api';
+import { getAccessToken, getStoredUser } from '@/lib/auth-token';
+import { PolicyCategoryRow, type PolicyCategory } from '@/components/moderation';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+
+type PolicyVersion = {
+  id: string;
+  version: number;
+  isActive: boolean;
+  createdBy: string;
+  categories: PolicyCategory[];
+  createdAt: string;
+};
+
+type AdminPolicyResponse = {
+  active: PolicyVersion;
+  history: PolicyVersion[];
+};
 
 export default function AdminPolicyPage() {
   const token = getAccessToken();
-  const { toast } = useToast();
+  const user = getStoredUser();
   const queryClient = useQueryClient();
 
-  const [draftCategories, setDraftCategories] = useState<PolicyCategory[] | null>(null);
+  const [localCategories, setLocalCategories] = useState<PolicyCategory[]>([]);
+  const [pulseVersion, setPulseVersion] = useState(false);
 
-  const { data: policyData, isLoading, isError, error } = useQuery({
-    queryKey: ['admin-policy'],
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'policy'],
     queryFn: () =>
-      apiRequest<PolicyResponse>('/api/admin/policy', {}, token),
-    enabled: Boolean(token),
+      apiRequest<AdminPolicyResponse>('/api/admin/policy', {}, token),
+    enabled: Boolean(token) && user?.role === 'admin',
   });
 
-  // Initialise draft when data first loads — in effect, not during render
+  // Sync loaded active policy to local editable state
   useEffect(() => {
-    if (policyData && draftCategories === null) {
-      setDraftCategories(policyData.activeVersion.categories);
+    if (data?.active?.categories) {
+      setLocalCategories(JSON.parse(JSON.stringify(data.active.categories)));
     }
-  }, [policyData, draftCategories]);
+  }, [data?.active]);
 
   const saveMutation = useMutation({
-    mutationFn: (categories: PolicyCategory[]) =>
-      apiRequest<PolicyVersion>('/api/admin/policy', {
-        method: 'PUT',
-        body: JSON.stringify({ categories }),
-      }, token),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['admin-policy'] });
-      setDraftCategories(null); // will be re-init from fresh data via useEffect
-      toast({ title: 'Policy Updated', description: 'New policy version created.' });
+    mutationFn: (newCategories: PolicyCategory[]) =>
+      apiRequest<PolicyVersion>(
+        '/api/admin/policy',
+        {
+          method: 'PUT',
+          body: JSON.stringify({ categories: newCategories }),
+        },
+        token
+      ),
+    onSuccess: (newVersion) => {
+      toast.info(`Policy saved — now version ${newVersion.version}`);
+      
+      // Animate badge
+      setPulseVersion(true);
+      setTimeout(() => setPulseVersion(false), 400);
+
+      // Invalidate to reload history
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'policy'] });
     },
     onError: (err: Error) => {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      toast.error(err.message || 'Failed to save policy');
     },
   });
 
-  const handleUpdateCategory = (index: number, changes: Partial<PolicyCategory>) => {
-    if (!draftCategories) return;
-    const newDraft = [...draftCategories];
-    newDraft[index] = { ...newDraft[index], ...changes };
-    setDraftCategories(newDraft);
+  // Compare local state to original to track unsaved changes
+  const modifiedCategories = useMemo(() => {
+    if (!data?.active?.categories) return [];
+    
+    return localCategories.filter((localCat) => {
+      const originalCat = data.active.categories.find((c) => c.name === localCat.name);
+      if (!originalCat) return true;
+      return (
+        localCat.enabled !== originalCat.enabled ||
+        localCat.confidenceThreshold !== originalCat.confidenceThreshold ||
+        localCat.enforcement !== originalCat.enforcement
+      );
+    });
+  }, [localCategories, data?.active?.categories]);
+
+  const modifiedCount = modifiedCategories.length;
+
+  const handleCategoryChange = (updated: PolicyCategory) => {
+    setLocalCategories((prev) =>
+      prev.map((c) => (c.name === updated.name ? updated : c))
+    );
+  };
+
+  const handleDiscard = () => {
+    if (data?.active?.categories) {
+      setLocalCategories(JSON.parse(JSON.stringify(data.active.categories)));
+    }
   };
 
   const handleSave = () => {
-    if (!draftCategories) return;
-    saveMutation.mutate(draftCategories);
+    saveMutation.mutate(localCategories);
   };
 
-  if (isLoading) {
-    return <p aria-live="polite">Loading policy…</p>;
+  if (!token || user?.role !== 'admin') return null;
+
+  if (isLoading || !data) {
+    return <div className="flex justify-center p-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
 
-  if (isError) {
-    return (
-      <p role="alert" className="text-destructive">
-        {error instanceof Error ? error.message : 'Failed to load policy.'}
-      </p>
-    );
-  }
-
-  if (!policyData) {
-    return <p className="text-muted-foreground">No policy data available.</p>;
-  }
+  const activePolicy = data.active;
+  const history = data.history;
 
   return (
-    <div className="space-y-8 max-w-4xl">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Policy Configuration</h1>
-        <Button onClick={handleSave} disabled={saveMutation.isPending || !draftCategories}>
-          {saveMutation.isPending ? 'Saving…' : 'Save New Version'}
-        </Button>
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+      {/* Left column — Policy editor */}
+      <div className="relative">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center">
+              <h2 className="text-xl font-semibold">Active Policy</h2>
+              <Badge
+                variant="secondary"
+                className={cn(
+                  'ml-3 font-mono transition-transform duration-300',
+                  pulseVersion && 'scale-125 bg-primary text-primary-foreground'
+                )}
+              >
+                v{activePolicy.version}
+              </Badge>
+            </div>
+            <span className="text-xs text-muted-foreground font-mono block mt-0.5">
+              Updated {format(new Date(activePolicy.createdAt), 'MMM d, yyyy HH:mm')} by {activePolicy.createdBy}
+            </span>
+          </div>
+        </div>
 
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Active Categories</h2>
-        {draftCategories === null ? (
-          <p className="text-muted-foreground">Preparing editor…</p>
-        ) : (
-          draftCategories.map((cat, idx) => (
-            <Card key={cat.name}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{cat.name}</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={cat.enabled}
-                      onCheckedChange={(c) => handleUpdateCategory(idx, { enabled: c })}
-                    />
-                    <Label>{cat.enabled ? 'Enabled' : 'Disabled'}</Label>
-                  </div>
-                </div>
-              </CardHeader>
-              {cat.enabled && (
-                <CardContent className="space-y-6 pt-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label>Confidence Threshold: {cat.confidenceThreshold}%</Label>
-                    </div>
-                    <Slider
-                      value={[cat.confidenceThreshold]}
-                      max={100}
-                      step={1}
-                      onValueChange={([val]) =>
-                        handleUpdateCategory(idx, { confidenceThreshold: val })
-                      }
-                    />
-                  </div>
+        <div className="space-y-3">
+          {localCategories.map((category) => {
+            const isModified = modifiedCategories.some((c) => c.name === category.name);
+            return (
+              <PolicyCategoryRow
+                key={category.name}
+                category={category}
+                modified={isModified}
+                onChange={handleCategoryChange}
+                disabled={saveMutation.isPending}
+              />
+            );
+          })}
+        </div>
 
-                  <div className="space-y-2">
-                    <Label>Enforcement Action</Label>
-                    <RadioGroup
-                      value={cat.enforcement}
-                      onValueChange={(v: PolicyCategory['enforcement']) =>
-                        handleUpdateCategory(idx, { enforcement: v })
-                      }
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="flag_for_review" id={`flag-${idx}`} />
-                        <Label htmlFor={`flag-${idx}`}>Flag for Review</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="auto_block" id={`block-${idx}`} />
-                        <Label htmlFor={`block-${idx}`}>Auto Block</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          ))
+        {/* Sticky unsaved changes bar */}
+        {modifiedCount > 0 && (
+          <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 -mx-8 mt-6 flex items-center justify-between z-10 animate-in slide-in-from-bottom-2">
+            <span className="text-sm text-muted-foreground">
+              {modifiedCount} unsaved change{modifiedCount !== 1 ? 's' : ''}
+            </span>
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDiscard}
+                disabled={saveMutation.isPending}
+              >
+                Discard
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={saveMutation.isPending}
+              >
+                {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                Save as New Version
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Version History</h2>
-        <div className="space-y-2">
-          {policyData.history.length === 0 ? (
-            <p className="text-muted-foreground">No previous versions.</p>
-          ) : (
-            policyData.history.map((v) => (
-              <div key={v.id} className="p-3 border rounded flex justify-between bg-muted/50">
-                <span>Version {v.version}</span>
-                <span className="text-muted-foreground">
-                  {new Date(v.createdAt).toLocaleString()}
-                </span>
-              </div>
-            ))
-          )}
-        </div>
+      {/* Right column — Version history */}
+      <div>
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
+          Version History
+        </h3>
+
+        <ScrollArea className="h-[calc(100vh-200px)]">
+          <div className="space-y-1">
+            {history.map((version) => (
+              <Collapsible key={version.id} className="group">
+                <CollapsibleTrigger asChild>
+                  <div tabIndex={0} className="flex items-center gap-3 py-3 px-3 rounded-md hover:bg-muted cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    {/* Left dot */}
+                    <div className="flex shrink-0 items-center">
+                      <div
+                        className={cn(
+                          'h-2 w-2 rounded-full',
+                          version.isActive ? 'bg-primary' : 'bg-muted-foreground/40'
+                        )}
+                      />
+                      {version.isActive && (
+                        <Badge variant="default" className="ml-2 text-[10px] px-1.5 py-0 h-4 font-mono leading-none">
+                          ACTIVE
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Center text */}
+                    <div className="flex-1 flex flex-col items-start overflow-hidden">
+                      <span className="font-mono font-medium text-sm">v{version.version}</span>
+                      <span className="text-xs text-muted-foreground truncate w-full">
+                        {format(new Date(version.createdAt), 'MMM d, yyyy')} · by {version.createdBy}
+                      </span>
+                    </div>
+
+                    {/* Right chevron */}
+                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                  </div>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent>
+                  <div className="bg-muted/50 rounded-md mx-3 mb-2 p-3 space-y-2 border border-border">
+                    {version.categories.map((cat) => (
+                      <div key={cat.name} className="flex items-center text-xs leading-none">
+                        <span className="w-36 shrink-0 truncate font-medium text-muted-foreground">
+                          {cat.name}
+                        </span>
+                        {cat.enabled ? (
+                          <>
+                            <span className="font-mono text-muted-foreground w-12">{cat.confidenceThreshold}%</span>
+                            <span className={cn('font-mono text-[10px] uppercase', cat.enforcement === 'auto_block' ? 'text-verdict-blocked' : 'text-verdict-flagged')}>
+                              {cat.enforcement === 'auto_block' ? 'BLOCK' : 'REVIEW'}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground/50 italic">Disabled</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );
