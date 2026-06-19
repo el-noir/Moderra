@@ -82,3 +82,42 @@ export type Appeal = {
 };
 
 export type AppealDecision = 'accepted' | 'rejected';
+
+// ── Analytics ─────────────────────────────────────────────────────────────────
+
+export type SubmissionOverTime = { date: string; count: number };
+
+export type VerdictByOutcome = {
+  approved: number;
+  flagged: number;
+  blocked: number;
+};
+
+export type VerdictByCategory = {
+  category: string;
+  detected: number;
+  notDetected: number;
+};
+
+export type AppealStats = {
+  total: number;
+  pending: number;
+  accepted: number;
+  rejected: number;
+  resolutionRate: number;
+};
+
+export type UserRankRow = { userId: string; email: string; count: number };
+
+export type AnalyticsResponse = {
+  submissionsOverTime: SubmissionOverTime[];
+  verdictDistribution: {
+    byOutcome: VerdictByOutcome;
+    byCategory: VerdictByCategory[];
+  };
+  appealStats: AppealStats;
+  userRankings: {
+    bySubmissionCount: UserRankRow[];
+    byViolationCount: UserRankRow[];
+  };
+};

@@ -30,7 +30,7 @@ function assertImmutableFieldsNotUpdated(update: unknown): void {
 }
 
 export function applyPolicyVersionImmutabilityGuards(schema: Schema): void {
-  schema.pre('save', function policyVersionSaveGuard() {
+  schema.pre('save', function policyVersionSaveGuard(this: any) {
     if (!this.isNew && this.isModified('categories')) {
       throw new BadRequestException(
         'PolicyVersion categories cannot be modified in place. Insert a new version instead.',

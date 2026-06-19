@@ -19,7 +19,7 @@ export class SubmissionsController {
   @UseInterceptors(SubmissionFilesInterceptor())
   createSubmission(
     @Req() request: AuthenticatedRequest,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: any[],
   ): Promise<SubmissionResponseDto> {
     return this.submissionsService.createSubmission(request.user, files);
   }

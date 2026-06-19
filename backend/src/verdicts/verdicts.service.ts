@@ -42,7 +42,7 @@ function toAdminVerdictResponse(doc: ImageVerdictDocument): AdminVerdictResponse
     imagePath: doc.imagePath,
     originalFilename: doc.originalFilename,
     outcome: doc.outcome,
-    categoryResults: doc.categoryResults.map((c) => ({
+    categoryResults: doc.categoryResults.map((c: any) => ({
       category: c.category,
       classification: c.classification,
       confidenceScore: c.confidenceScore,

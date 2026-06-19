@@ -7,6 +7,9 @@ RUN npm install
 
 COPY . .
 
+# Make the entrypoint executable
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 3001
 
-CMD ["npm", "run", "start:dev"]
+CMD ["/bin/sh", "/app/entrypoint.sh"]

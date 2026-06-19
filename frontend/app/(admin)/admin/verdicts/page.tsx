@@ -26,7 +26,7 @@ export default function AdminVerdictsPage() {
   const [outcome, setOutcome] = useState<string>('all');
   const [category, setCategory] = useState<string>('');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['admin-verdicts', page, outcome, category],
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page) });
@@ -41,6 +41,18 @@ export default function AdminVerdictsPage() {
     },
     enabled: Boolean(token),
   });
+
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+
+  if (isLoading) return <p aria-live="polite">Loading verdicts…</p>;
+
+  if (isError) {
+    return (
+      <p role="alert" className="text-destructive">
+        {error instanceof Error ? error.message : 'Failed to load verdicts.'}
+      </p>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -67,71 +79,72 @@ export default function AdminVerdictsPage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <p>Loading verdicts...</p>
-      ) : (
-        <>
-          <div className="border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Outcome</TableHead>
-                  <TableHead>Categories Triggered</TableHead>
-                  <TableHead>Overridden</TableHead>
-                  <TableHead>Actions</TableHead>
+      <div className="border rounded-md">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Image</TableHead>
+              <TableHead>Outcome</TableHead>
+              <TableHead>Categories Triggered</TableHead>
+              <TableHead>Overridden</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data?.items.map((v) => {
+              const detected = v.categoryResults.filter(c => c.classification === 'detected');
+              return (
+                <TableRow key={v.id}>
+                  <TableCell>{new Date(v.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>
+                    <a
+                      href={`${apiBase}${v.imagePath}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-500 hover:underline"
+                    >
+                      {v.originalFilename}
+                    </a>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={v.outcome === 'approved' ? 'default' : v.outcome === 'flagged' ? 'secondary' : 'destructive'}>
+                      {outcomeLabel(v.outcome)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {detected.length > 0
+                      ? detected.map(c => c.category).join(', ')
+                      : 'None'}
+                  </TableCell>
+                  <TableCell>
+                    {v.override?.isOverridden ? (
+                      <Badge variant="outline">Yes by Admin</Badge>
+                    ) : 'No'}
+                  </TableCell>
+                  <TableCell>
+                    <VerdictOverrideModal verdict={v} />
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data?.items.map((v) => {
-                  const detected = v.categoryResults.filter(c => c.classification === 'detected');
-                  return (
-                    <TableRow key={v.id}>
-                      <TableCell>{new Date(v.createdAt).toLocaleString()}</TableCell>
-                      <TableCell>
-                        <a href={`http://localhost:3000${v.imagePath}`} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">
-                          {v.originalFilename}
-                        </a>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={v.outcome === 'approved' ? 'default' : v.outcome === 'flagged' ? 'secondary' : 'destructive'}>
-                          {outcomeLabel(v.outcome)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {detected.length > 0 
-                          ? detected.map(c => c.category).join(', ') 
-                          : 'None'}
-                      </TableCell>
-                      <TableCell>
-                        {v.override?.isOverridden ? (
-                          <Badge variant="outline">Yes by Admin</Badge>
-                        ) : 'No'}
-                      </TableCell>
-                      <TableCell>
-                        <VerdictOverrideModal verdict={v} />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {data?.items.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center">No verdicts found.</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          
-          {data && data.totalPages > 1 && (
-            <div className="flex justify-center gap-4 items-center">
-              <Button disabled={page === 1} onClick={() => setPage(p => p - 1)} variant="outline">Previous</Button>
-              <span>Page {page} of {data.totalPages}</span>
-              <Button disabled={page === data.totalPages} onClick={() => setPage(p => p + 1)} variant="outline">Next</Button>
-            </div>
-          )}
-        </>
+              );
+            })}
+            {data?.items.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  No verdicts found. Try adjusting your filters.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {data && data.totalPages > 1 && (
+        <div className="flex justify-center gap-4 items-center">
+          <Button disabled={page === 1} onClick={() => setPage(p => p - 1)} variant="outline">Previous</Button>
+          <span>Page {page} of {data.totalPages}</span>
+          <Button disabled={page === data.totalPages} onClick={() => setPage(p => p + 1)} variant="outline">Next</Button>
+        </div>
       )}
     </div>
   );

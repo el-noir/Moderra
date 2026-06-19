@@ -26,7 +26,7 @@ export function createSubmissionUploadOptions(configService: ConfigService) {
   return {
     storage: diskStorage({
       destination: uploadDir,
-      filename: (_req, file, callback) => {
+      filename: (_req: any, file: any, callback: any) => {
         const extension = extname(file.originalname).toLowerCase();
 
         if (!ALLOWED_EXTENSIONS.has(extension)) {
@@ -42,8 +42,8 @@ export function createSubmissionUploadOptions(configService: ConfigService) {
       files: MAX_IMAGES_PER_SUBMISSION,
     },
     fileFilter: (
-      _req: Express.Request,
-      file: Express.Multer.File,
+      _req: any,
+      file: any,
       callback: (error: Error | null, acceptFile: boolean) => void,
     ) => {
       if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {

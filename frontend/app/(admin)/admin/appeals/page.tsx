@@ -22,6 +22,7 @@ export default function AdminAppealsPage() {
   );
   const [adminResponses, setAdminResponses] = useState<Record<string, string>>({});
   const [resolving, setResolving] = useState<ResolveState | null>(null);
+  const [mutationError, setMutationError] = useState<{ appealId: string; message: string } | null>(null);
 
   const appealsQuery = useQuery({
     queryKey: ['admin', 'appeals', statusFilter],
@@ -35,9 +36,8 @@ export default function AdminAppealsPage() {
   });
 
   const resolveMutation = useMutation({
-    mutationFn: async ({ appealId, decision }: ResolveState) => {
-      setResolving({ appealId, decision });
-      return apiRequest<Appeal>(
+    mutationFn: ({ appealId, decision }: ResolveState) =>
+      apiRequest<Appeal>(
         `/api/admin/appeals/${appealId}`,
         {
           method: 'PATCH',
@@ -47,13 +47,22 @@ export default function AdminAppealsPage() {
           }),
         },
         token,
-      );
+      ),
+    onMutate: (variables) => {
+      setResolving(variables);
+      setMutationError(null);
     },
     onSettled: () => {
       setResolving(null);
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'appeals'] });
+    },
+    onError: (err: Error, variables) => {
+      setMutationError({
+        appealId: variables.appealId,
+        message: err.message || 'Failed to resolve appeal',
+      });
     },
   });
 
@@ -172,12 +181,10 @@ export default function AdminAppealsPage() {
                     : 'Reject appeal'}
                 </button>
               </div>
-              {resolveMutation.isError &&
-              resolving?.appealId === appeal.id ? (
+              {(resolveMutation.isError || mutationError?.appealId === appeal.id) &&
+              mutationError?.appealId === appeal.id ? (
                 <p role="alert">
-                  {resolveMutation.error instanceof Error
-                    ? resolveMutation.error.message
-                    : 'Failed to resolve appeal'}
+                  {mutationError.message}
                 </p>
               ) : null}
             </div>

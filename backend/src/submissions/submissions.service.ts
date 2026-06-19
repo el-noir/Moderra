@@ -45,7 +45,7 @@ export class SubmissionsService {
 
   async createSubmission(
     user: AuthenticatedUser,
-    files: Express.Multer.File[],
+    files: any[],
   ): Promise<SubmissionResponseDto> {
     if (!files?.length) {
       throw new BadRequestException('At least one image is required');
@@ -152,7 +152,7 @@ export class SubmissionsService {
   }
 
   private async processImage(
-    file: Express.Multer.File,
+    file: any,
     submissionId: Types.ObjectId,
     userId: string,
     activePolicy: PolicyVersionDocument,
@@ -269,7 +269,7 @@ export class SubmissionsService {
     }
 
     const submissions = await this.submissionModel.find(submissionFilter).select('_id').exec();
-    return submissions.map((submission) => submission._id);
+    return submissions.map((submission: any) => submission._id);
   }
 
   private async populateSubmissionResponses(

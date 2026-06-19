@@ -8,7 +8,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { Types } from 'mongoose';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
@@ -20,7 +19,7 @@ import { OverrideVerdictDto } from './dto/override-verdict.dto';
 import { VerdictsService } from './verdicts.service';
 import { ParseObjectIdPipe } from '../common/pipes/parse-object-id.pipe';
 
-type AuthenticatedRequest = Request & { user: AuthenticatedUser };
+type AuthenticatedRequest = any & { user: AuthenticatedUser };
 
 @Controller('admin/verdicts')
 @UseGuards(JwtAuthGuard, RolesGuard)
