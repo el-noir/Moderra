@@ -106,10 +106,32 @@ export class AppealsService {
   async listAdminAppeals(
     query: ListAdminAppealsQueryDto,
   ): Promise<AppealResponseDto[]> {
-    const status = query.status ?? APPEAL_STATUSES.PENDING;
+    const appealFilter: Record<string, unknown> = {};
+
+    if (query.status && query.status !== 'all') {
+      appealFilter.status = query.status;
+    } else if (!query.status) {
+      appealFilter.status = APPEAL_STATUSES.PENDING;
+    }
+
+    if (query.dateFrom || query.dateTo) {
+      const createdAt: { $gte?: Date; $lte?: Date } = {};
+      if (query.dateFrom) createdAt.$gte = new Date(query.dateFrom);
+      if (query.dateTo) createdAt.$lte = new Date(query.dateTo);
+      appealFilter.createdAt = createdAt;
+    }
+
+    if (query.email) {
+      const matchingUsers = await this.userModel
+        .find({ email: { $regex: query.email, $options: 'i' } })
+        .select('_id')
+        .exec();
+      const userIds = matchingUsers.map((u) => u._id);
+      appealFilter.userId = { $in: userIds };
+    }
 
     const appeals = await this.appealModel
-      .find({ status })
+      .find(appealFilter)
       .sort({ createdAt: 1 })
       .exec();
 

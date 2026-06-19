@@ -16,6 +16,14 @@ export class GetVerdictsDto {
   userId?: string;
 
   @IsOptional()
+  @IsString()
+  email?: string;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  hasOverride?: boolean;
+
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
   dateFrom?: Date;

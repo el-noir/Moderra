@@ -2,15 +2,16 @@
 
 import React, { useState } from 'react';
 import {
-  VerdictBadge,
-  ConfidenceBar,
-  CategoryRow,
   AppealStatusTimeline,
+  CategoryRow,
+  ConfidenceBar,
   PolicyCategoryRow,
+  VerdictBadge,
+  type PolicyCategory,
 } from '@/components/moderation';
 
 export default function ComponentsDevPage() {
-  const [dummyPolicy, setDummyPolicy] = useState({
+  const [dummyPolicy, setDummyPolicy] = useState<PolicyCategory>({
     name: 'Violence',
     enabled: true,
     confidenceThreshold: 80,

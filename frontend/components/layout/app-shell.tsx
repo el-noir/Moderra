@@ -30,11 +30,12 @@ function usePageTitle(fallback: string): string {
 
 type AppShellProps = {
   title: string;
+  titleSuffix?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
 };
 
-export function AppShell({ title, action, children }: AppShellProps) {
+export function AppShell({ title, titleSuffix, action, children }: AppShellProps) {
   const [user, setUser] = useState<AuthUser | undefined>(undefined);
   const router = useRouter();
   const pageTitle = usePageTitle(title);
@@ -67,7 +68,7 @@ export function AppShell({ title, action, children }: AppShellProps) {
           <MobileNav user={user} onLogout={handleLogout} />
         )}
         
-        <TopBar title={pageTitle} action={action} />
+        <TopBar title={pageTitle} titleSuffix={titleSuffix} action={action} />
         
         <main className="px-4 md:px-8 py-6 max-w-7xl mx-auto w-full flex-1 mb-16 md:mb-0">
           {children}

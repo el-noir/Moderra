@@ -23,6 +23,12 @@ export type ImageVerdict = {
   createdAt: string;
 };
 
+export type AdminVerdictResponse = ImageVerdict & {
+  userId: string;
+  submissionId: string;
+  user?: { email: string };
+};
+
 export type PolicyCategory = {
   name: string;
   enabled: boolean;

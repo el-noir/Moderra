@@ -216,7 +216,7 @@ export default function HistoryPage() {
         </div>
       ) : (
         <>
-          <div className="border border-border rounded-md overflow-hidden bg-card">
+          <div className="border border-border rounded-md overflow-hidden bg-card overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow>

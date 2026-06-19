@@ -12,11 +12,12 @@ export type PolicyCategory = {
 
 type Props = {
   category: PolicyCategory;
-  modified: boolean;
-  onChange: (updated: PolicyCategory) => void;
+  modified?: boolean;
+  onChange?: (updated: PolicyCategory) => void;
+  disabled?: boolean;
 };
 
-export function PolicyCategoryRow({ category, modified, onChange }: Props) {
+export function PolicyCategoryRow({ category, modified, onChange, disabled }: Props) {
   return (
     <div
       className={cn(
@@ -29,7 +30,8 @@ export function PolicyCategoryRow({ category, modified, onChange }: Props) {
       {/* Toggle */}
       <Switch
         checked={category.enabled}
-        onCheckedChange={(v) => onChange({ ...category, enabled: v })}
+        disabled={disabled}
+        onCheckedChange={(v) => onChange?.({ ...category, enabled: v })}
         aria-label={`Enable ${category.name}`}
       />
 
@@ -46,9 +48,9 @@ export function PolicyCategoryRow({ category, modified, onChange }: Props) {
           min={0}
           max={100}
           value={category.confidenceThreshold}
-          disabled={!category.enabled}
+          disabled={disabled || !category.enabled}
           onChange={(e) =>
-            onChange({
+            onChange?.({
               ...category,
               confidenceThreshold: Number(e.target.value),
             })
@@ -67,7 +69,8 @@ export function PolicyCategoryRow({ category, modified, onChange }: Props) {
         {(['flag_for_review', 'auto_block'] as const).map((mode) => (
           <button
             key={mode}
-            onClick={() => onChange({ ...category, enforcement: mode })}
+            disabled={disabled}
+            onClick={() => onChange?.({ ...category, enforcement: mode })}
             className={cn(
               'px-3 py-1 text-xs font-mono transition-colors',
               'focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-offset-2',

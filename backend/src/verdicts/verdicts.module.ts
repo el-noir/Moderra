@@ -6,12 +6,14 @@ import {
 } from './schemas/image-verdict.schema';
 import { VerdictsService } from './verdicts.service';
 import { AdminVerdictsController } from './verdicts.controller';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: ImageVerdict.name, schema: ImageVerdictSchema },
     ]),
+    UsersModule,
   ],
   controllers: [AdminVerdictsController],
   providers: [VerdictsService],

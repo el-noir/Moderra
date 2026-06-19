@@ -7,6 +7,7 @@ export class AppealVerdictSummaryDto {
   originalFilename: string;
   outcome: string;
   imagePath: string;
+  categoryResults?: any[];
 }
 
 export class AppealUserSummaryDto {
@@ -36,6 +37,7 @@ export function toAppealVerdictSummary(
     originalFilename: verdict.originalFilename,
     outcome: verdict.outcome,
     imagePath: verdict.imagePath,
+    categoryResults: verdict.categoryResults,
   };
 }
 

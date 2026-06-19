@@ -2,13 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { CheckCircle2, MessageSquare } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { getAccessToken } from '@/lib/auth-token';
 import type { Appeal } from '@/lib/types';
-import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,7 +19,7 @@ import { VerdictBadge, AppealStatusTimeline } from '@/components/moderation';
 function AppealSkeleton() {
   return (
     <Card className="mb-3">
-      <CardContent className="pt-5 flex gap-6">
+      <CardContent className="pt-5 flex flex-col md:flex-row gap-6">
         {/* Left */}
         <div className="flex-1 space-y-4">
           <div className="flex items-center gap-3">
@@ -35,7 +34,7 @@ function AppealSkeleton() {
           </div>
         </div>
         {/* Right */}
-        <div className="w-48 shrink-0 space-y-3">
+        <div className="w-full md:w-48 md:shrink-0 space-y-3 border-t border-border md:border-t-0 pt-4 md:pt-0">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-4 w-20" />
@@ -55,7 +54,7 @@ function AppealCard({ appeal }: { appeal: Appeal }) {
 
   return (
     <Card className="mb-3 transition-colors hover:border-border/80">
-      <CardContent className="pt-5 flex gap-6">
+      <CardContent className="pt-5 flex flex-col md:flex-row gap-6">
         {/* Left column */}
         <div className="flex-1 min-w-0">
           {/* Top row */}
@@ -119,7 +118,7 @@ function AppealCard({ appeal }: { appeal: Appeal }) {
         </div>
 
         {/* Right column — timeline */}
-        <div className="w-48 shrink-0">
+        <div className="w-full md:w-48 md:shrink-0 border-t border-border md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
           <AppealStatusTimeline
             status={appeal.status}
             createdAt={appeal.createdAt}

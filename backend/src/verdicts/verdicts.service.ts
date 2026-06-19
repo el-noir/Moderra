@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ImageVerdict, ImageVerdictDocument } from './schemas/image-verdict.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 import { OverrideVerdictDto } from './dto/override-verdict.dto';
 import { GetVerdictsDto } from './dto/get-verdicts.dto';
 
@@ -68,10 +69,12 @@ export class VerdictsService {
   constructor(
     @InjectModel(ImageVerdict.name)
     private readonly verdictModel: Model<ImageVerdictDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   async getVerdicts(query: GetVerdictsDto) {
-    const { outcome, category, userId, dateFrom, dateTo, page = 1, limit = 20 } = query;
+    const { outcome, category, userId, email, hasOverride, dateFrom, dateTo, page = 1, limit = 20 } = query;
 
     const filter: any = {};
 
@@ -83,6 +86,17 @@ export class VerdictsService {
     }
     if (userId && Types.ObjectId.isValid(userId)) {
       filter.userId = new Types.ObjectId(userId);
+    }
+    if (email) {
+      const matchingUsers = await this.userModel
+        .find({ email: { $regex: email, $options: 'i' } })
+        .select('_id')
+        .exec();
+      const userIds = matchingUsers.map((u) => u._id);
+      filter.userId = { $in: userIds };
+    }
+    if (hasOverride !== undefined) {
+      filter['override.isOverridden'] = hasOverride === true;
     }
     if (dateFrom || dateTo) {
       filter.createdAt = {};

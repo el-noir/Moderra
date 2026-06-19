@@ -217,11 +217,7 @@ export default function VerdictDetailPage({
               snapshotCategories.map((sc: any) => (
                 <PolicyCategoryRow
                   key={sc.name}
-                  name={sc.name}
-                  enabled={sc.enabled}
-                  confidenceThreshold={sc.confidenceThreshold}
-                  enforcement={sc.enforcement}
-                  onChange={() => {}} // noop
+                  category={sc}
                   disabled={true}
                 />
               ))

@@ -1,8 +1,20 @@
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsDateString, IsIn, IsOptional, IsString } from 'class-validator';
 import { APPEAL_STATUS_VALUES, AppealStatus } from '../../common/constants/appeal.constants';
 
 export class ListAdminAppealsQueryDto {
   @IsOptional()
-  @IsEnum(APPEAL_STATUS_VALUES)
-  status?: AppealStatus;
+  @IsIn([...APPEAL_STATUS_VALUES, 'all'])
+  status?: AppealStatus | 'all';
+
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dateFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dateTo?: string;
 }
