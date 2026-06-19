@@ -1,12 +1,32 @@
 'use client';
 
 import { ReactNode, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Sidebar } from './sidebar';
 import { MobileNav } from './mobile-nav';
 import { TopBar } from './top-bar';
 import { getStoredUser, clearAccessToken } from '@/lib/auth-token';
 import type { AuthUser } from '@/lib/types';
+
+const ROUTE_TITLES: Record<string, string> = {
+  '/submit': 'New Submission',
+  '/history': 'History',
+  '/appeals': 'My Appeals',
+  '/admin/queue': 'Appeals Queue',
+  '/admin/verdicts': 'Verdicts',
+  '/admin/policy': 'Policy',
+  '/admin/analytics': 'Analytics',
+};
+
+function usePageTitle(fallback: string): string {
+  const pathname = usePathname();
+  // exact match first, then prefix match for nested routes (e.g. /history/[id])
+  if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
+  const prefix = Object.keys(ROUTE_TITLES).find(
+    (k) => pathname.startsWith(k + '/') && k !== '/'
+  );
+  return prefix ? ROUTE_TITLES[prefix] : fallback;
+}
 
 type AppShellProps = {
   title: string;
@@ -17,6 +37,7 @@ type AppShellProps = {
 export function AppShell({ title, action, children }: AppShellProps) {
   const [user, setUser] = useState<AuthUser | undefined>(undefined);
   const router = useRouter();
+  const pageTitle = usePageTitle(title);
 
   useEffect(() => {
     const storedUser = getStoredUser();
@@ -46,7 +67,7 @@ export function AppShell({ title, action, children }: AppShellProps) {
           <MobileNav user={user} onLogout={handleLogout} />
         )}
         
-        <TopBar title={title} action={action} />
+        <TopBar title={pageTitle} action={action} />
         
         <main className="px-4 md:px-8 py-6 max-w-7xl mx-auto w-full flex-1 mb-16 md:mb-0">
           {children}

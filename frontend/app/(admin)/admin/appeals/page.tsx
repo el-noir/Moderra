@@ -57,6 +57,7 @@ export default function AdminAppealsPage() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'appeals'] });
+      void queryClient.invalidateQueries({ queryKey: ['appeals'] });
     },
     onError: (err: Error, variables) => {
       setMutationError({

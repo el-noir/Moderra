@@ -58,8 +58,9 @@ export type LoginResponse = {
 export type AppealVerdictSummary = {
   id: string;
   originalFilename: string;
-  outcome: string;
+  outcome: 'approved' | 'flagged' | 'blocked';
   imagePath: string;
+  categoryResults?: CategoryResult[];
 };
 
 export type AppealUserSummary = {
