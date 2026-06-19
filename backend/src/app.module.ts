@@ -8,6 +8,7 @@ import { ConfigModule } from './config/config.module';
 import { PolicyModule } from './policy/policy.module';
 import { AppealsModule } from './appeals/appeals.module';
 import { SubmissionsModule } from './submissions/submissions.module';
+import { VerdictsModule } from './verdicts/verdicts.module';
 import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
@@ -31,6 +32,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     SubmissionsModule,
     AppealsModule,
     AdminModule,
+    VerdictsModule,
   ],
   controllers: [AppController],
   providers: [RolesGuard],

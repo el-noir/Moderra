@@ -5,6 +5,13 @@ export type CategoryResult = {
   reasoning: string;
 };
 
+export type VerdictOverride = {
+  isOverridden: boolean;
+  by: string;
+  reason: string;
+  at: string;
+};
+
 export type ImageVerdict = {
   id: string;
   imagePath: string;
@@ -12,6 +19,22 @@ export type ImageVerdict = {
   outcome: 'approved' | 'flagged' | 'blocked';
   categoryResults: CategoryResult[];
   processingError: string | null;
+  override?: VerdictOverride | null;
+  createdAt: string;
+};
+
+export type PolicyCategory = {
+  name: string;
+  enabled: boolean;
+  confidenceThreshold: number;
+  enforcement: 'auto_block' | 'flag_for_review';
+};
+
+export type PolicyVersion = {
+  id: string;
+  version: number;
+  isActive: boolean;
+  categories: PolicyCategory[];
   createdAt: string;
 };
 
