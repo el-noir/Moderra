@@ -99,6 +99,10 @@ const config: Config = {
           '0%, 100%': { transform: 'scale(1)' },
           '50%':      { transform: 'scale(1.05)' },
         },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -106,6 +110,7 @@ const config: Config = {
         'confidence-fill': 'confidence-fill 600ms ease-out forwards',
         shimmer:           'shimmer 1.5s linear infinite',
         'verdict-pulse':   'verdict-pulse 300ms ease-in-out',
+        'fade-in':         'fade-in 200ms ease forwards',
       },
     },
   },
