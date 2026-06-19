@@ -3,7 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiRequest } from '@/lib/api';
-import { setAccessToken } from '@/lib/auth-token';
+import { setAccessToken, setStoredUser } from '@/lib/auth-token';
 import type { LoginResponse } from '@/lib/types';
 
 export default function LoginPage() {
@@ -25,7 +25,8 @@ export default function LoginPage() {
       });
 
       setAccessToken(response.accessToken);
-      router.push('/submit');
+      setStoredUser(response.user);
+      router.push(response.user.role === 'admin' ? '/admin/appeals' : '/submit');
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : 'Login failed',

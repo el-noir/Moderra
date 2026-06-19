@@ -17,7 +17,8 @@ export default function RootLayout({
       <body>
         <nav>
           <Link href="/">Home</Link> | <Link href="/login">Login</Link> |{' '}
-          <Link href="/submit">Submit</Link>
+          <Link href="/submit">Submit</Link> | <Link href="/history">History</Link>{' '}
+          | <Link href="/admin/appeals">Admin appeals</Link>
         </nav>
         {children}
       </body>

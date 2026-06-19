@@ -21,11 +21,41 @@ export type Submission = {
   imageVerdicts: ImageVerdict[];
 };
 
+export type AuthUser = {
+  id: string;
+  email: string;
+  role: string;
+};
+
 export type LoginResponse = {
   accessToken: string;
-  user: {
-    id: string;
-    email: string;
-    role: string;
-  };
+  user: AuthUser;
 };
+
+export type AppealVerdictSummary = {
+  id: string;
+  originalFilename: string;
+  outcome: string;
+  imagePath: string;
+};
+
+export type AppealUserSummary = {
+  id: string;
+  email: string;
+};
+
+export type Appeal = {
+  id: string;
+  imageVerdictId: string;
+  userId: string;
+  justification: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  adminResponse: string | null;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  imageVerdict?: AppealVerdictSummary;
+  user?: AppealUserSummary;
+};
+
+export type AppealDecision = 'accepted' | 'rejected';
