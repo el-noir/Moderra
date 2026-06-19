@@ -25,7 +25,7 @@ export function CategoryRow({
   return (
     <div
       className={cn(
-        'flex items-center gap-4 px-4 py-3 rounded-md transition-colors',
+        'flex flex-col md:flex-row items-start md:items-center gap-4 px-4 py-3 rounded-md transition-colors w-full',
         'hover:bg-muted/50',
         triggered && enforcement === 'auto_block' && 'bg-verdict-blocked-bg/60',
         triggered &&
@@ -34,7 +34,7 @@ export function CategoryRow({
       )}
     >
       {/* Category name */}
-      <span className="w-44 shrink-0 text-sm font-medium text-foreground truncate">
+      <span className="w-full md:w-44 shrink-0 text-sm font-medium text-foreground truncate">
         {category}
       </span>
 
@@ -52,7 +52,7 @@ export function CategoryRow({
       </Badge>
 
       {/* Confidence bar */}
-      <div className="flex-1 pt-4 pb-1">
+      <div className="w-full md:flex-1 pt-4 pb-1">
         <ConfidenceBar
           score={confidenceScore}
           threshold={threshold}
@@ -63,7 +63,7 @@ export function CategoryRow({
       {/* Enforcement tag */}
       <span
         className={cn(
-          'shrink-0 font-mono text-[10px] text-muted-foreground w-20 text-right',
+          'shrink-0 font-mono text-[10px] text-muted-foreground w-full md:w-20 text-left md:text-right',
           triggered && enforcement === 'auto_block' && 'text-verdict-blocked',
           triggered &&
             enforcement === 'flag_for_review' &&

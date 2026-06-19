@@ -70,6 +70,7 @@ export function PolicyCategoryRow({ category, modified, onChange }: Props) {
             onClick={() => onChange({ ...category, enforcement: mode })}
             className={cn(
               'px-3 py-1 text-xs font-mono transition-colors',
+              'focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-offset-2',
               category.enforcement === mode
                 ? mode === 'auto_block'
                   ? 'bg-verdict-blocked-bg text-verdict-blocked border-l-2 border-l-verdict-blocked'

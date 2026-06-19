@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { QueryProvider } from '@/components/QueryProvider';
 import { getAccessToken, getStoredUser, isAdminUser } from '@/lib/auth-token';
+import { AppShell } from '@/components/layout/app-shell';
 
 export default function AdminLayout({
   children,
@@ -26,5 +27,11 @@ export default function AdminLayout({
     }
   }, [router]);
 
-  return <QueryProvider>{children}</QueryProvider>;
+  return (
+    <QueryProvider>
+      <AppShell title="Administration">
+        {children}
+      </AppShell>
+    </QueryProvider>
+  );
 }
