@@ -31,7 +31,6 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      setAccessToken(response.accessToken);
       setStoredUser(response.user);
       router.push(response.user.role === 'admin' ? '/admin/appeals' : '/submit');
     } catch (submitError) {

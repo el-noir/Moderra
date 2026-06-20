@@ -6,6 +6,7 @@ import { Sidebar } from './sidebar';
 import { MobileNav } from './mobile-nav';
 import { TopBar } from './top-bar';
 import { getStoredUser, clearAccessToken } from '@/lib/auth-token';
+import { apiRequest } from '@/lib/api';
 import type { AuthUser } from '@/lib/types';
 
 const ROUTE_TITLES: Record<string, string> = {
@@ -49,7 +50,12 @@ export function AppShell({ title, titleSuffix, action, children }: AppShellProps
     }
   }, [router]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiRequest('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      // Ignore errors on logout
+    }
     clearAccessToken();
     router.push('/login');
   };

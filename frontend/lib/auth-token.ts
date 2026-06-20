@@ -5,19 +5,14 @@ const TOKEN_KEY = 'genisis_access_token';
 const USER_KEY = 'genisis_user';
 
 export function getAccessToken(): string | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  return window.localStorage.getItem(TOKEN_KEY);
+  return null; // Token is now handled via httpOnly cookies
 }
 
 export function setAccessToken(token: string): void {
-  window.localStorage.setItem(TOKEN_KEY, token);
+  // No-op
 }
 
 export function clearAccessToken(): void {
-  window.localStorage.removeItem(TOKEN_KEY);
   window.localStorage.removeItem(USER_KEY);
 }
 

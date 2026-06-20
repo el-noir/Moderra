@@ -59,8 +59,7 @@ export type AuthUser = {
   role: string;
 };
 
-export type LoginResponse = {
-  accessToken: string;
+export interface LoginResponse {
   user: AuthUser;
 };
 
