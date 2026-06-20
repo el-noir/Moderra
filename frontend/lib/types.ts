@@ -18,6 +18,9 @@ export type ImageVerdict = {
   originalFilename: string;
   outcome: 'approved' | 'flagged' | 'blocked';
   categoryResults: CategoryResult[];
+  policySnapshot: {
+    categories: PolicyCategory[];
+  };
   processingError: string | null;
   override?: VerdictOverride | null;
   createdAt: string;

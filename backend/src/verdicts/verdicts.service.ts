@@ -30,6 +30,7 @@ export interface AdminVerdictResponse {
   originalFilename: string;
   outcome: string;
   categoryResults: CategoryResultResponse[];
+  policySnapshot: any;
   processingError: string | null;
   override: VerdictOverrideResponse | null;
   createdAt: Date;
@@ -49,6 +50,7 @@ function toAdminVerdictResponse(doc: ImageVerdictDocument): AdminVerdictResponse
       confidenceScore: c.confidenceScore,
       reasoning: c.reasoning,
     })),
+    policySnapshot: doc.policySnapshot,
     processingError: doc.processingError,
     override: doc.override
       ? {
@@ -116,8 +118,20 @@ export class VerdictsService {
       this.verdictModel.countDocuments(filter).exec(),
     ]);
 
+    // Hydrate user email for each verdict
+    const uniqueUserIds = [...new Set(docs.map((d) => d.userId.toString()))];
+    const users = await this.userModel
+      .find({ _id: { $in: uniqueUserIds } })
+      .select('_id email')
+      .lean()
+      .exec();
+    const userEmailMap = new Map(users.map((u: any) => [u._id.toString(), u.email as string]));
+
     return {
-      items: docs.map(toAdminVerdictResponse),
+      items: docs.map((doc) => ({
+        ...toAdminVerdictResponse(doc),
+        user: { email: userEmailMap.get(doc.userId.toString()) ?? '' },
+      })),
       total,
       page,
       limit,

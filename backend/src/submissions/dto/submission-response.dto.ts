@@ -14,6 +14,7 @@ export class ImageVerdictResponseDto {
   originalFilename: string;
   outcome: string;
   categoryResults: CategoryResultResponseDto[];
+  policySnapshot: any;
   processingError: string | null;
   createdAt: Date;
 }
@@ -44,6 +45,7 @@ export function toImageVerdictResponse(
     originalFilename: verdict.originalFilename,
     outcome: verdict.outcome,
     categoryResults: verdict.categoryResults.map(toCategoryResultResponse),
+    policySnapshot: verdict.policySnapshot,
     processingError: verdict.processingError,
     createdAt: verdict.createdAt,
   };

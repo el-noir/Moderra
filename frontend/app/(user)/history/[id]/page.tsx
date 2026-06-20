@@ -5,8 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ChevronDown, MessageSquare, Loader2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, MessageSquare, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { apiRequest } from '@/lib/api';
 import { getAccessToken } from '@/lib/auth-token';
 import type { Submission, Appeal } from '@/lib/types';
@@ -48,7 +49,7 @@ export default function VerdictDetailPage({
   const { id: submissionId } = use(params);
   const verdictId = searchParams.get('v');
 
-  const { data: submission, isLoading, isError } = useQuery({
+  const { data: submission, isLoading, isError, refetch } = useQuery({
     queryKey: ['submission', submissionId],
     queryFn: () =>
       apiRequest<Submission>(`/api/submissions/${submissionId}`, {}, token),
@@ -98,11 +99,22 @@ export default function VerdictDetailPage({
 
   if (isError || !submission || !verdict) {
     return (
-      <div className="max-w-3xl mx-auto py-12 text-center">
-        <p className="text-destructive font-medium mb-4">Failed to load verdict details.</p>
-        <Button variant="outline" asChild>
-          <Link href="/history">Back to History</Link>
-        </Button>
+      <div className="max-w-3xl mx-auto py-12">
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>Failed to load verdict details. Please try again.</span>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+        <div className="text-center">
+          <Button variant="outline" asChild>
+            <Link href="/history">Back to History</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -112,8 +124,7 @@ export default function VerdictDetailPage({
   ) ?? [];
   const latestAppeal = existingAppeals[0];
 
-  // Assuming `verdict.policySnapshot` has the categories list. (If not, we render empty for now)
-  const snapshotCategories = (verdict as any).policySnapshot?.categories ?? [];
+  const snapshotCategories = verdict.policySnapshot?.categories ?? [];
   const triggeredCategories = verdict.categoryResults?.filter(c => c.classification === 'detected') ?? [];
   const clearCategories = verdict.categoryResults?.filter(c => c.classification === 'not_detected') ?? [];
 
@@ -147,39 +158,52 @@ export default function VerdictDetailPage({
       <div className="flex items-center justify-between mt-3 px-1">
         <VerdictBadge outcome={verdict.outcome} size="lg" />
         <span className="text-xs text-muted-foreground font-mono">
-          Policy v? · {verdict.categoryResults?.length ?? 0} categories evaluated
+          Policy snapshot · {verdict.categoryResults?.length ?? 0} categories evaluated
         </span>
       </div>
 
-      <Separator className="my-6" />
+      <Separator />
 
-      {/* Category Breakdown */}
-      <div>
-        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
-          AI Analysis
-        </h2>
-
-        {verdict.processingError ? (
-          <p className="text-destructive text-sm font-medium">{verdict.processingError}</p>
-        ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              {triggeredCategories.map((cat) => (
-                <CategoryRow
-                  key={cat.category}
-                  category={cat.category}
-                  classification={cat.classification as 'detected' | 'not_detected'}
-                  confidenceScore={cat.confidenceScore}
-                  reasoning={cat.reasoning}
-                  threshold={80} // Extracted from snapshot if available
-                  enforcement="auto_block" // Extracted from snapshot if available
-                />
-              ))}
+      <div className="space-y-8">
+        {/* Triggered Violations */}
+        {triggeredCategories.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold mb-4 text-verdict-blocked flex items-center">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Triggered Violations
+            </h3>
+            <div className="space-y-3">
+              {triggeredCategories.map((cat, idx) => {
+                const policyCat = snapshotCategories.find((c: any) => c.name === cat.category);
+                return (
+                  <div
+                    key={cat.category}
+                    className="opacity-0 motion-safe:animate-fade-in"
+                    style={{ animationDelay: `${idx * 40}ms` }}
+                  >
+                    <CategoryRow
+                      category={cat.category}
+                      classification={cat.classification as 'detected' | 'not_detected'}
+                      confidenceScore={cat.confidenceScore}
+                      reasoning={cat.reasoning}
+                      threshold={policyCat?.confidenceThreshold ?? 80}
+                      enforcement={policyCat?.enforcement ?? 'auto_block'}
+                    />
+                  </div>
+                );
+              })}
             </div>
+          </div>
+        )}
 
-            {triggeredCategories.length > 0 && clearCategories.length > 0 && (
-              <div className="relative py-4">
-                <Separator />
+        {/* Clear Categories */}
+        {clearCategories.length > 0 && (
+          <div className="relative">
+            <h3 className="text-sm font-semibold mb-4 text-muted-foreground">
+              Clear Categories
+            </h3>
+            {triggeredCategories.length > 0 && (
+              <div className="absolute -top-6 left-0 right-0 h-px bg-border/50">
                 <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-background px-2 text-xs text-muted-foreground">
                   Below threshold
                 </span>
@@ -187,17 +211,25 @@ export default function VerdictDetailPage({
             )}
 
             <div className="space-y-2">
-              {clearCategories.map((cat) => (
-                <CategoryRow
-                  key={cat.category}
-                  category={cat.category}
-                  classification={cat.classification as 'detected' | 'not_detected'}
-                  confidenceScore={cat.confidenceScore}
-                  reasoning={cat.reasoning}
-                  threshold={80}
-                  enforcement="flag_for_review"
-                />
-              ))}
+              {clearCategories.map((cat, idx) => {
+                const policyCat = snapshotCategories.find((c: any) => c.name === cat.category);
+                return (
+                  <div
+                    key={cat.category}
+                    className="opacity-0 motion-safe:animate-fade-in"
+                    style={{ animationDelay: `${(triggeredCategories.length + idx) * 40}ms` }}
+                  >
+                    <CategoryRow
+                      category={cat.category}
+                      classification={cat.classification as 'detected' | 'not_detected'}
+                      confidenceScore={cat.confidenceScore}
+                      reasoning={cat.reasoning}
+                      threshold={policyCat?.confidenceThreshold ?? 80}
+                      enforcement={policyCat?.enforcement ?? 'flag_for_review'}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

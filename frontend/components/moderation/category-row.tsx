@@ -33,23 +33,25 @@ export function CategoryRow({
           'bg-verdict-flagged-bg/60'
       )}
     >
-      {/* Category name */}
-      <span className="w-full md:w-44 shrink-0 text-sm font-medium text-foreground truncate">
-        {category}
-      </span>
+      <div className="flex items-center justify-between w-full md:w-auto md:shrink-0 gap-2">
+        {/* Category name */}
+        <span className="w-full md:w-44 shrink-0 text-sm font-medium text-foreground truncate">
+          {category}
+        </span>
 
-      {/* Classification chip */}
-      <Badge
-        variant="outline"
-        className={cn(
-          'shrink-0 font-mono text-[10px] w-24 justify-center',
-          classification === 'detected'
-            ? 'border-verdict-blocked/40 text-verdict-blocked bg-verdict-blocked-bg/40'
-            : 'border-muted text-muted-foreground'
-        )}
-      >
-        {classification === 'detected' ? 'DETECTED' : 'CLEAR'}
-      </Badge>
+        {/* Classification chip */}
+        <Badge
+          variant="outline"
+          className={cn(
+            'shrink-0 font-mono text-[10px] w-24 justify-center',
+            classification === 'detected'
+              ? 'border-verdict-blocked/40 text-verdict-blocked bg-verdict-blocked-bg/40'
+              : 'border-muted text-muted-foreground'
+          )}
+        >
+          {classification === 'detected' ? 'DETECTED' : 'CLEAR'}
+        </Badge>
+      </div>
 
       {/* Confidence bar */}
       <div className="w-full md:flex-1 pt-4 pb-1">

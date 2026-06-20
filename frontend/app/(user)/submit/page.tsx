@@ -276,6 +276,19 @@ export default function SubmitPage() {
         </div>
       </form>
 
+      {submitMutation.isError && (
+        <Alert variant="destructive" className="mt-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Submission Failed</AlertTitle>
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <span>Failed to process your submission. Please try again.</span>
+            <Button variant="outline" size="sm" onClick={() => submitMutation.mutate(files.map(f => f.file))}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Results Panel */}
       <div
         className={cn(
@@ -371,26 +384,31 @@ export default function SubmitPage() {
                           AI Analysis
                         </h3>
                         <div className="space-y-2">
-                          {verdict.categoryResults.map((cat, idx) => (
-                            <div
-                              key={cat.category}
-                              className="opacity-0 motion-safe:animate-fade-in"
-                              style={{ animationDelay: `${idx * 40}ms` }}
-                            >
-                              <CategoryRow
-                                category={cat.category}
-                                classification={
-                                  cat.classification as
-                                    | 'detected'
-                                    | 'not_detected'
-                                }
-                                confidenceScore={cat.confidenceScore}
-                                reasoning={cat.reasoning}
-                                threshold={80} // TODO: Extract from policy snapshot
-                                enforcement="auto_block" // TODO: Extract from policy snapshot
-                              />
-                            </div>
-                          ))}
+                          {verdict.categoryResults.map((cat, idx) => {
+                            const policyCat = verdict.policySnapshot?.categories.find(
+                              (c) => c.name === cat.category
+                            );
+                            return (
+                              <div
+                                key={cat.category}
+                                className="opacity-0 motion-safe:animate-fade-in"
+                                style={{ animationDelay: `${idx * 40}ms` }}
+                              >
+                                <CategoryRow
+                                  category={cat.category}
+                                  classification={
+                                    cat.classification as
+                                      | 'detected'
+                                      | 'not_detected'
+                                  }
+                                  confidenceScore={cat.confidenceScore}
+                                  reasoning={cat.reasoning}
+                                  threshold={policyCat?.confidenceThreshold ?? 80}
+                                  enforcement={policyCat?.enforcement ?? 'auto_block'}
+                                />
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -399,7 +417,7 @@ export default function SubmitPage() {
                       verdict.outcome === 'blocked') && (
                       <div className="mt-6 flex justify-end">
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/history/${verdict.id}`}>
+                          <Link href={`/history/${result.id}?v=${verdict.id}`}>
                             <MessageSquare className="h-4 w-4 mr-2" />
                             Dispute this verdict
                           </Link>

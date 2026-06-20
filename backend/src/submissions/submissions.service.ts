@@ -119,7 +119,7 @@ export class SubmissionsService {
     }
 
     const submissions = await this.submissionModel
-      .find({ _id: { $in: submissionIds }, userId: user.userId })
+      .find({ _id: { $in: submissionIds }, userId: new Types.ObjectId(user.userId) })
       .sort({ createdAt: -1 })
       .exec();
 

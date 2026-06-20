@@ -4,7 +4,7 @@ import { extname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync } from 'node:fs';
 
-export const MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024;
+export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const MAX_IMAGES_PER_SUBMISSION = 10;
 
 const ALLOWED_MIME_TYPES = new Set([
@@ -12,9 +12,10 @@ const ALLOWED_MIME_TYPES = new Set([
   'image/png',
   'image/webp',
   'image/gif',
+  'image/avif',
 ]);
 
-const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 
 export function createSubmissionUploadOptions(configService: ConfigService) {
   const uploadDir = configService.get<string>('uploadDir') ?? './uploads';

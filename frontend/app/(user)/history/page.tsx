@@ -11,7 +11,9 @@ import {
   Filter,
   Inbox,
   X,
+  AlertTriangle,
 } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { apiRequest } from '@/lib/api';
 import { getAccessToken } from '@/lib/auth-token';
 import type { Submission } from '@/lib/types';
@@ -77,7 +79,7 @@ export default function HistoryPage() {
     return params.toString();
   }, [outcome, dateFrom, dateTo]);
 
-  const { data: submissions, isLoading, isError } = useQuery({
+  const { data: submissions, isLoading, isError, refetch } = useQuery({
     queryKey: ['submissions', queryParams],
     queryFn: () => apiRequest<Submission[]>(`/api/submissions?${queryParams}`, {}, token),
     enabled: Boolean(token),
@@ -194,9 +196,16 @@ export default function HistoryPage() {
           ))}
         </div>
       ) : isError ? (
-        <div className="text-center py-20">
-          <p className="text-destructive font-medium">Failed to load history.</p>
-        </div>
+        <Alert variant="destructive" className="my-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>Failed to load history. Please try again.</span>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
       ) : submissions?.length === 0 && !hasActiveFilters ? (
         <div className="text-center py-20 flex flex-col items-center">
           <Inbox className="h-12 w-12 text-muted-foreground mb-4" />
@@ -216,9 +225,9 @@ export default function HistoryPage() {
         </div>
       ) : (
         <>
-          <div className="border border-border rounded-md overflow-hidden bg-card overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-muted/30">
+          <div className="border border-transparent md:border-border rounded-md overflow-hidden bg-transparent md:bg-card overflow-x-auto">
+            <Table className="block md:table w-full">
+              <TableHeader className="hidden md:table-header-group bg-muted/30">
                 <TableRow>
                   <TableHead className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Submitted</TableHead>
                   <TableHead className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Images</TableHead>
@@ -227,17 +236,17 @@ export default function HistoryPage() {
                   <TableHead className="text-xs text-muted-foreground uppercase tracking-wider font-medium text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {paginatedSubmissions.map((submission) => {
+              {paginatedSubmissions.map((submission) => {
                   const uniqueOutcomes = Array.from(
                     new Set(submission.imageVerdicts.map((v) => v.outcome))
                   );
                   
                   return (
                     <Collapsible key={submission.id} asChild>
-                      <>
-                        <TableRow className="cursor-pointer hover:bg-muted/50 transition-colors group">
-                            <TableCell>
+                      <TableBody className="block md:table-row-group space-y-4 md:space-y-0">
+                        <TableRow className="block md:table-row bg-card md:bg-transparent border md:border-b border-border rounded-lg md:rounded-none p-4 md:p-0 shadow-sm md:shadow-none cursor-pointer hover:bg-muted/50 transition-colors group">
+                            <TableCell className="block md:table-cell w-full md:w-auto flex justify-between items-center border-b md:border-none pb-2 mb-2 md:pb-4 md:mb-0">
+                              <span className="md:hidden text-xs text-muted-foreground font-medium uppercase tracking-wider">Submitted</span>
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -251,20 +260,27 @@ export default function HistoryPage() {
                                 </Tooltip>
                               </TooltipProvider>
                             </TableCell>
-                            <TableCell className="font-mono text-sm text-muted-foreground">
-                              {submission.imageVerdicts.length}
+                            <TableCell className="block md:table-cell w-full md:w-auto flex justify-between items-center border-b md:border-none pb-2 mb-2 md:pb-4 md:mb-0">
+                              <span className="md:hidden text-xs text-muted-foreground font-medium uppercase tracking-wider">Images</span>
+                              <span className="font-mono text-sm text-muted-foreground">
+                                {submission.imageVerdicts.length}
+                              </span>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="block md:table-cell w-full md:w-auto flex justify-between items-center border-b md:border-none pb-2 mb-2 md:pb-4 md:mb-0">
+                              <span className="md:hidden text-xs text-muted-foreground font-medium uppercase tracking-wider">Outcomes</span>
                               <div className="flex gap-1 flex-wrap">
                                 {uniqueOutcomes.map((outcome) => (
                                   <VerdictBadge key={outcome} outcome={outcome} size="sm" />
                                 ))}
                               </div>
                             </TableCell>
-                            <TableCell className="font-mono text-xs text-muted-foreground">
-                              v? {/* The exact version depends on policy Snapshot, placeholder for now */}
+                            <TableCell className="block md:table-cell w-full md:w-auto flex justify-between items-center border-b md:border-none pb-2 mb-2 md:pb-4 md:mb-0">
+                              <span className="md:hidden text-xs text-muted-foreground font-medium uppercase tracking-wider">Policy</span>
+                              <span className="font-mono text-xs text-muted-foreground">
+                                v? {/* The exact version depends on policy Snapshot, placeholder for now */}
+                              </span>
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="block md:table-cell w-full md:w-auto text-right md:text-right flex justify-center md:justify-end pt-2 md:pt-4">
                               <CollapsibleTrigger asChild>
                                 <Button variant="ghost" size="sm">
                                   <div>
@@ -275,9 +291,9 @@ export default function HistoryPage() {
                             </TableCell>
                           </TableRow>
                         <CollapsibleContent asChild>
-                          <TableRow className="bg-muted/10 border-b border-border">
-                            <TableCell colSpan={5} className="p-0">
-                              <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <TableRow className="block md:table-row bg-muted/10 border-b border-border">
+                            <TableCell colSpan={5} className="block md:table-cell p-0">
+                              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                 {submission.imageVerdicts.map((verdict) => {
                                   const topCategory = verdict.categoryResults?.find(c => c.classification === 'detected');
                                   return (
@@ -308,11 +324,10 @@ export default function HistoryPage() {
                             </TableCell>
                           </TableRow>
                         </CollapsibleContent>
-                      </>
+                      </TableBody>
                     </Collapsible>
                   );
                 })}
-              </TableBody>
             </Table>
           </div>
           

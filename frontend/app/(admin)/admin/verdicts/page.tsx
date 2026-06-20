@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
-import { CalendarIcon, Loader2, X } from 'lucide-react';
+import { CalendarIcon, Loader2, X, AlertTriangle } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { getAccessToken, getStoredUser } from '@/lib/auth-token';
 import type { AdminVerdictResponse } from '@/lib/types';
 import { CATEGORIES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { OverrideDialog, VerdictBadge } from '@/components/moderation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -78,7 +79,7 @@ export default function AdminVerdictsPage() {
   if (dateTo) queryParams.set('dateTo', dateTo.toISOString());
   if (hasOverride) queryParams.set('hasOverride', 'true');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin', 'verdicts', queryParams.toString()],
     queryFn: () =>
       apiRequest<{ items: AdminVerdictResponse[]; totalPages: number }>(
@@ -207,7 +208,22 @@ export default function AdminVerdictsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isError ? (
+              <TableRow>
+                <TableCell colSpan={7}>
+                  <Alert variant="destructive" className="my-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription className="flex items-center justify-between">
+                      <span>Failed to load verdicts. Please try again.</span>
+                      <Button variant="outline" size="sm" onClick={() => refetch()}>
+                        Retry
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                </TableCell>
+              </TableRow>
+            ) : isLoading ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
                   <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />

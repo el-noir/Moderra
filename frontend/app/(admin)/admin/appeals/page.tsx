@@ -5,11 +5,12 @@ import Image from 'next/image';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CheckCircle2, CalendarIcon, Loader2 } from 'lucide-react';
+import { CheckCircle2, CalendarIcon, Loader2, AlertTriangle } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { getAccessToken, getStoredUser } from '@/lib/auth-token';
 import type { Appeal, AppealDecision } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -293,7 +294,7 @@ export default function AdminAppealsPage() {
   if (dateFrom) queryParams.set('dateFrom', dateFrom.toISOString());
   if (dateTo) queryParams.set('dateTo', dateTo.toISOString());
 
-  const { data: appeals, isLoading } = useQuery({
+  const { data: appeals, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin', 'appeals', statusFilter, debouncedSearch, dateFrom, dateTo],
     queryFn: () =>
       apiRequest<Appeal[]>(`/api/admin/appeals?${queryParams.toString()}`, {}, token),
@@ -443,8 +444,18 @@ export default function AdminAppealsPage() {
           )}
         </div>
 
-        {/* Content */}
-        {isLoading ? (
+        {isError ? (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription className="flex items-center justify-between">
+              <span>Failed to load queue. Please try again.</span>
+              <Button variant="outline" size="sm" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : isLoading ? (
           <>
             <AppealCardSkeleton />
             <AppealCardSkeleton />

@@ -3,13 +3,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronDown, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { apiRequest } from '@/lib/api';
 import { getAccessToken, getStoredUser } from '@/lib/auth-token';
 import { PolicyCategoryRow, type PolicyCategory } from '@/components/moderation';
 import { cn } from '@/lib/utils';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -41,7 +42,7 @@ export default function AdminPolicyPage() {
   const [localCategories, setLocalCategories] = useState<PolicyCategory[]>([]);
   const [pulseVersion, setPulseVersion] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin', 'policy'],
     queryFn: () =>
       apiRequest<AdminPolicyResponse>('/api/admin/policy', {}, token),
@@ -115,6 +116,23 @@ export default function AdminPolicyPage() {
 
   if (!token || user?.role !== 'admin') return null;
 
+  if (isError) {
+    return (
+      <div className="p-12 max-w-2xl mx-auto">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>Failed to load policy. Please try again.</span>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   if (isLoading || !data) {
     return <div className="flex justify-center p-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
@@ -133,7 +151,7 @@ export default function AdminPolicyPage() {
               <Badge
                 variant="secondary"
                 className={cn(
-                  'ml-3 font-mono transition-transform duration-300',
+                  'ml-3 font-mono motion-safe:transition-transform duration-300',
                   pulseVersion && 'scale-125 bg-primary text-primary-foreground'
                 )}
               >

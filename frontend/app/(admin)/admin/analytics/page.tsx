@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { format, subDays } from 'date-fns';
-import { CalendarIcon, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
+import { CalendarIcon, TrendingUp, TrendingDown, Loader2, AlertTriangle } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -23,6 +23,7 @@ import { apiRequest } from '@/lib/api';
 import { getAccessToken, getStoredUser } from '@/lib/auth-token';
 import type { AnalyticsResponse } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -64,7 +65,7 @@ export default function AnalyticsPage() {
   queryParams.set('dateFrom', dateFrom.toISOString());
   queryParams.set('dateTo', dateTo.toISOString());
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin', 'analytics', dateFrom.toISOString(), dateTo.toISOString()],
     queryFn: () =>
       apiRequest<AnalyticsResponse>(
@@ -85,6 +86,23 @@ export default function AnalyticsPage() {
   }, [data?.verdictDistribution?.byCategory, catSortAsc]);
 
   if (!token || user?.role !== 'admin') return null;
+
+  if (isError) {
+    return (
+      <div className="p-12 max-w-2xl mx-auto">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>Failed to load analytics. Please try again.</span>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   const renderTopBarAction = () => {
     return (
@@ -256,7 +274,7 @@ export default function AnalyticsPage() {
       <Card>
         <CardContent className="pt-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-4">Category Breakdown</h3>
-          <div className="border rounded-md">
+          <div className="border rounded-md overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -317,7 +335,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardContent className="pt-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-4">Top Submitters</h3>
-            <div className="border rounded-md">
+            <div className="border rounded-md overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -367,7 +385,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardContent className="pt-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-4">Top Violations</h3>
-            <div className="border rounded-md">
+            <div className="border rounded-md overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>

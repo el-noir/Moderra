@@ -4,10 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2, MessageSquare } from 'lucide-react';
+import { CheckCircle2, MessageSquare, AlertTriangle } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { getAccessToken } from '@/lib/auth-token';
 import type { Appeal } from '@/lib/types';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -182,6 +184,8 @@ export default function AppealsPage() {
 
   const pendingCount = pendingQuery.data?.length ?? 0;
   const isLoading = pendingQuery.isLoading || resolvedQuery.isLoading;
+  const isError = pendingQuery.isError || resolvedQuery.isError;
+  const refetchAll = () => { pendingQuery.refetch(); resolvedQuery.refetch(); };
 
   if (!token) {
     return (
@@ -213,7 +217,18 @@ export default function AppealsPage() {
         </TabsList>
 
         <TabsContent value="pending">
-          {isLoading ? (
+          {isError ? (
+            <Alert variant="destructive" className="my-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription className="flex items-center justify-between">
+                <span>Failed to load appeals. Please try again.</span>
+                <Button variant="outline" size="sm" onClick={() => refetchAll()}>
+                  Retry
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : isLoading ? (
             <>
               <AppealSkeleton />
               <AppealSkeleton />
@@ -228,7 +243,18 @@ export default function AppealsPage() {
         </TabsContent>
 
         <TabsContent value="resolved">
-          {isLoading ? (
+          {isError ? (
+            <Alert variant="destructive" className="my-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription className="flex items-center justify-between">
+                <span>Failed to load appeals. Please try again.</span>
+                <Button variant="outline" size="sm" onClick={() => refetchAll()}>
+                  Retry
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : isLoading ? (
             <>
               <AppealSkeleton />
               <AppealSkeleton />
