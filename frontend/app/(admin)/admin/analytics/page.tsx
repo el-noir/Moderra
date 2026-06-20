@@ -219,9 +219,7 @@ export default function AnalyticsPage() {
                       labelFormatter={(label) => format(new Date(label as string), 'MMM d, yyyy')}
                     />
                     <Legend iconType="circle" />
-                    <Bar dataKey="approved" name="Approved" stackId="a" fill={COLORS.approved} />
-                    <Bar dataKey="flagged" name="Flagged" stackId="a" fill={COLORS.flagged} />
-                    <Bar dataKey="blocked" name="Blocked" stackId="a" fill={COLORS.blocked} />
+                    <Bar dataKey="count" name="Submissions" fill={COLORS.approved} radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

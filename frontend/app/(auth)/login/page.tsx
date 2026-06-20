@@ -33,7 +33,7 @@ export default function LoginPage() {
 
       setAccessToken(response.accessToken);
       setStoredUser(response.user);
-      router.push(response.user.role === 'admin' ? '/admin/queue' : '/submit');
+      router.push(response.user.role === 'admin' ? '/admin/appeals' : '/submit');
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : 'Login failed',

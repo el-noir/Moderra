@@ -31,7 +31,7 @@ const workspaceLinks = [
 ];
 
 const adminLinks = [
-  { href: '/admin/queue', label: 'Appeals Queue', icon: Inbox },
+  { href: '/admin/appeals', label: 'Appeals Queue', icon: Inbox },
   { href: '/admin/verdicts', label: 'Verdicts', icon: Shield },
   { href: '/admin/policy', label: 'Policy', icon: Settings },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
@@ -69,14 +69,14 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
 
   return (
     <aside className="flex flex-col w-60 h-full bg-card border-r border-border shrink-0">
-      <div className="flex items-center gap-2 p-6">
+      <Link href="/" className="flex items-center gap-2 p-6 hover:opacity-80 transition-opacity">
         <span className="font-semibold text-lg text-foreground tracking-tight">
-          ModerateAI
+          Moderra
         </span>
         <Badge variant="outline" className="text-[10px] px-1.5 py-0">
           BETA
         </Badge>
-      </div>
+      </Link>
 
       <div className="flex-1 overflow-y-auto py-2 flex flex-col gap-6">
         <div className="px-3">

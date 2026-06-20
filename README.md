@@ -62,6 +62,55 @@ All variables live in the root `.env` file (copied from `.env.example`).
 
 ## Architecture
 
+### System Flow Diagram
+
+```mermaid
+graph TD
+    %% Actors
+    User([User])
+    Admin([Administrator])
+
+    %% Frontend Subsystems
+    subgraph Frontend [Next.js App Router]
+        UI_User[User Dashboard]
+        UI_Admin[Admin Dashboard]
+    end
+
+    %% Backend Subsystems
+    subgraph Backend [NestJS Server]
+        API_Auth[Auth Module]
+        API_Sub[Submissions Module]
+        API_Mod[Moderation Engine]
+        API_App[Appeals Module]
+        API_Pol[Policy Module]
+    end
+
+    %% External Services
+    DB[(MongoDB)]
+    Groq[Groq Vision API]
+
+    %% Flow: User
+    User -->|Upload Image| UI_User
+    UI_User -->|POST /submissions| API_Sub
+    API_Sub -->|Process Image| API_Mod
+    
+    %% Flow: Moderation
+    API_Mod <-->|Evaluate against Policy| Groq
+    API_Mod -->|Store ImageVerdict| DB
+
+    %% Flow: Appeals
+    User -->|Dispute Verdict| UI_User
+    UI_User -->|POST /appeals| API_App
+    API_App -->|Store Appeal| DB
+
+    %% Flow: Admin
+    Admin -->|Review Queue| UI_Admin
+    UI_Admin -->|PATCH /admin/appeals| API_App
+    Admin -->|Update Thresholds| UI_Admin
+    UI_Admin -->|PUT /admin/policy| API_Pol
+    API_Pol -->|Insert PolicyVersion| DB
+```
+
 ### Backend — NestJS + Mongoose + Groq
 ```
 backend/src/

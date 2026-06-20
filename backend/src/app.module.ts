@@ -11,6 +11,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
 import { VerdictsModule } from './verdicts/verdicts.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { RolesGuard } from './common/guards/roles.guard';
+import { UploadsController } from './uploads/uploads.controller';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     VerdictsModule,
     AnalyticsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, UploadsController],
   providers: [RolesGuard],
 })
 export class AppModule {}

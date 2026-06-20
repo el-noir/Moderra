@@ -48,7 +48,9 @@ export function MobileNav({ user, onLogout }: MobileNavProps) {
             <Sidebar user={user} onLogout={onLogout} />
           </SheetContent>
         </Sheet>
-        <span className="font-semibold text-lg tracking-tight">ModerateAI</span>
+        <Link href="/" className="font-semibold text-lg tracking-tight hover:opacity-80">
+          Moderra
+        </Link>
       </div>
     );
   }

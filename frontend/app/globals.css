@@ -82,23 +82,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-}
-
-nav {
-  margin-bottom: 1.5rem;
-}
-
-article {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #ddd;
-}
