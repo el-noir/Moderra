@@ -19,7 +19,7 @@ An end-to-end AI-powered image content moderation system. Users upload images; t
 
 ```bash
 # 1. Clone the repository
-git clone <repo-url> && cd moderra
+git clone [<repo-url>(https://github.com/el-noir/Moderra) && cd Moderra
 
 # 2. Copy the environment file and fill in your values
 cp .env.example .env
